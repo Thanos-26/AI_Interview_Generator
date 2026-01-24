@@ -297,6 +297,12 @@ router.post("/analyze-interview", async (req, res) => {
       }
     }
 
+    // Handle case where interview was ended early (few or no Q&A pairs)
+    const isEarlyEnd = qaPairs.length === 0 || qaPairs.length < 3
+    const contextNote = isEarlyEnd 
+      ? "\nNote: This interview was ended early. Provide feedback based on the available responses, even if limited."
+      : ""
+
     // Build analysis prompt
     const analysisPrompt = `
 You are an expert interview analyst. Analyze the following interview session and provide comprehensive feedback.
@@ -305,28 +311,33 @@ Interview Details:
 - Role: ${interview.role}
 - Experience Level: ${interview.experience}
 - Interview Type: ${interview.type}
+${contextNote}
 
 Question & Answer Pairs with Scores:
-${qaPairs.map((qa, idx) => `
+${qaPairs.length > 0 
+  ? qaPairs.map((qa, idx) => `
 ${idx + 1}. Question: ${qa.question}
    Answer: ${qa.answer}
-   Score: ${qa.score}/100
-`).join("\n")}
+   Score: ${qa.score !== null && qa.score !== undefined ? qa.score : 'N/A'}/100
+`).join("\n")
+  : "No complete Q&A pairs available yet."
+}
 
 Average Score: ${averageScore}/100
+Total Questions Answered: ${qaPairs.length}
 
 Tasks:
-1. Write a brief summary (2-3 sentences) of the overall interview performance
-2. Identify 3-5 strong topics/concepts where the candidate performed well
-3. Identify 3-5 weak topics/concepts where the candidate needs improvement
-4. Provide 3-5 actionable suggestions on how to overcome the errors and improve
+1. Write a brief summary (2-3 sentences) of the overall interview performance${isEarlyEnd ? " so far" : ""}
+2. Identify strong topics/concepts where the candidate performed well (provide 2-5, or fewer if limited data)
+3. Identify weak topics/concepts where the candidate needs improvement (provide 2-5, or fewer if limited data)
+4. Provide actionable suggestions on how to overcome errors and improve (provide 2-5 suggestions)
 
 Return ONLY valid JSON in this format:
 {
   "summary": "string (2-3 sentences)",
-  "strongTopics": ["topic1", "topic2", "topic3"],
-  "weakTopics": ["topic1", "topic2", "topic3"],
-  "suggestions": ["suggestion1", "suggestion2", "suggestion3"]
+  "strongTopics": ["topic1", "topic2"],
+  "weakTopics": ["topic1", "topic2"],
+  "suggestions": ["suggestion1", "suggestion2"]
 }
 `
 

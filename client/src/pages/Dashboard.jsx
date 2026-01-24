@@ -12,6 +12,9 @@ const Dashboard = () => {
         if (interviewId) {
           const res = await axios.get(`http://localhost:8000/ai/interview/${interviewId}`);
           setInterview(res.data.interview);
+          
+          // Clear interviewId from localStorage after successful fetch
+          localStorage.removeItem('interviewId');
         }
       } catch (error) {
         console.error("Failed to fetch interview:", error);
