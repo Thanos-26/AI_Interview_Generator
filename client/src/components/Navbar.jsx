@@ -9,7 +9,7 @@ const Navbar = () => {
 
   return (
     <nav className="w-full px-6 py-4 flex justify-between items-center sticky top-0 z-[100] backdrop-blur-md border-b border-black/5 dark:border-white/5 bg-white/40 dark:bg-black/40">
-      <Link to="/" className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-blue-500">
+      <Link to="/home" className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-blue-500">
         INTERVIEW.SIM
       </Link>
       

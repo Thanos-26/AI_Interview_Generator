@@ -166,7 +166,7 @@ router.post("/next-question", async (req, res) => {
   })
 
   const ai = JSON.parse(completion.choices[0].message.content)
-
+  console.log(ai);
   // Save user answer
   await Message.create({
     interviewId,
@@ -186,14 +186,14 @@ router.post("/next-question", async (req, res) => {
 
   // ---- LONG TERM MEMORY UPDATE ----
 
-  if (ai.score < 5) {
+  if (ai.score < 50) {
     interview.weaknesses = [...new Set([
       ...(interview.weaknesses || []),
       "Needs clearer explanations"
     ])]
   }
 
-  if (ai.score > 7) {
+  if (ai.score > 70) {
     interview.strengths = [...new Set([
       ...(interview.strengths || []),
       "Good conceptual understanding"
@@ -210,7 +210,7 @@ router.post("/next-question", async (req, res) => {
   else interview.confidenceLevel += 0.05
 
   await interview.save()
-
+  // console.log(ai.nextQuestion);
   res.json({
     question: ai.nextQuestion,
     feedback: {
@@ -220,7 +220,152 @@ router.post("/next-question", async (req, res) => {
   })
 })
 
+// Analyze interview after completion
+router.post("/analyze-interview", async (req, res) => {
+  try {
+    const { interviewId } = req.body
 
+    const interview = await Interview.findById(interviewId)
+    if (!interview) {
+      return res.status(404).json({ message: "Interview not found" })
+    }
+
+    // Get all messages for this interview
+    const messages = await Message.find({ interviewId }).sort("createdAt")
+    
+    // Calculate average score from all AI messages that have scores
+    const scores = messages
+      .filter(m => m.role === "ai" && m.score !== null && m.score !== undefined)
+      .map(m => m.score)
+    
+    const averageScore = scores.length > 0 
+      ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+      : 0
+
+    // Build Q&A pairs for analysis
+    const qaPairs = []
+    for (let i = 0; i < messages.length; i++) {
+      if (messages[i].role === "ai" && i + 1 < messages.length && messages[i + 1].role === "user") {
+        qaPairs.push({
+          question: messages[i].content,
+          answer: messages[i + 1].content,
+          score: messages[i].score
+        })
+      }
+    }
+
+    // Handle case where interview was ended early (few or no Q&A pairs)
+    const isEarlyEnd = qaPairs.length === 0 || qaPairs.length < 3
+    const contextNote = isEarlyEnd 
+      ? "\nNote: This interview was ended early. Provide feedback based on the available responses, even if limited."
+      : ""
+
+    // Build analysis prompt
+    const analysisPrompt = `
+You are an expert interview analyst. Analyze the following interview session and provide comprehensive feedback.
+
+Interview Details:
+- Role: ${interview.role}
+- Experience Level: ${interview.experience}
+- Interview Type: ${interview.type}
+${contextNote}
+
+Question & Answer Pairs with Scores:
+${qaPairs.length > 0 
+  ? qaPairs.map((qa, idx) => `
+${idx + 1}. Question: ${qa.question}
+   Answer: ${qa.answer}
+   Score: ${qa.score !== null && qa.score !== undefined ? qa.score : 'N/A'}/100
+`).join("\n")
+  : "No complete Q&A pairs available yet."
+}
+
+Average Score: ${averageScore}/100
+Total Questions Answered: ${qaPairs.length}
+
+Tasks:
+1. Write a brief summary (2-3 sentences) of the overall interview performance${isEarlyEnd ? " so far" : ""}
+2. Identify strong topics/concepts where the candidate performed well (provide 2-5, or fewer if limited data)
+3. Identify weak topics/concepts where the candidate needs improvement (provide 2-5, or fewer if limited data)
+4. Provide actionable suggestions on how to overcome errors and improve (provide 2-5 suggestions)
+
+Return ONLY valid JSON in this format:
+{
+  "summary": "string (2-3 sentences)",
+  "strongTopics": ["topic1", "topic2"],
+  "weakTopics": ["topic1", "topic2"],
+  "suggestions": ["suggestion1", "suggestion2"]
+}
+`
+
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        { role: "system", content: "Reply ONLY in valid JSON. Do not include any markdown or code blocks." },
+        { role: "user", content: analysisPrompt }
+      ],
+      temperature: 0.7
+    })
+
+    const analysis = JSON.parse(completion.choices[0].message.content)
+
+    // Update interview with analysis results
+    interview.averageScore = averageScore
+    interview.summary = analysis.summary
+    interview.strongTopics = analysis.strongTopics || []
+    interview.weakTopics = analysis.weakTopics || []
+    interview.suggestions = analysis.suggestions || []
+    interview.status = "ended"
+    
+    await interview.save()
+
+    res.json({
+      success: true,
+      analysis: {
+        averageScore,
+        summary: analysis.summary,
+        strongTopics: analysis.strongTopics,
+        weakTopics: analysis.weakTopics,
+        suggestions: analysis.suggestions
+      }
+    })
+
+  } catch (error) {
+    console.error("Analysis error:", error)
+    res.status(500).json({ message: "Failed to analyze interview", error: error.message })
+  }
+})
+
+// Get interview analysis
+router.get("/interview/:interviewId", async (req, res) => {
+  try {
+    const { interviewId } = req.params
+    const interview = await Interview.findById(interviewId)
+    
+    if (!interview) {
+      return res.status(404).json({ message: "Interview not found" })
+    }
+
+    res.json({
+      interview: {
+        id: interview._id,
+        role: interview.role,
+        experience: interview.experience,
+        type: interview.type,
+        averageScore: interview.averageScore,
+        summary: interview.summary,
+        strongTopics: interview.strongTopics || [],
+        weakTopics: interview.weakTopics || [],
+        suggestions: interview.suggestions || [],
+        status: interview.status,
+        createdAt: interview.createdAt
+      }
+    })
+  } catch (error) {
+    console.error("Get interview error:", error)
+    res.status(500).json({ message: "Failed to get interview", error: error.message })
+  }
+})
 
 export default router;
 
