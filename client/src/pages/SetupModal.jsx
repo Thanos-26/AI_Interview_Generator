@@ -17,7 +17,7 @@
 //   const handleStart = () => {
 //     // You can console.log or pass these values to your state/backend here
 //     console.log({ role, experience, interviewType });
-    
+
 //     setIsConfigOpen(false);
 //     navigate('/interview');
 //   };
@@ -25,7 +25,7 @@
 //   return (
 //     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
 //       <div className="bg-white dark:bg-neutral-900 w-full max-w-lg p-8 rounded-[2.5rem] border border-gray-500/10 shadow-2xl">
-        
+
 //         {/* Header */}
 //         <div className="flex justify-between items-center mb-6">
 //           <h2 className="text-2xl font-bold dark:text-white">Interview Setup</h2>
@@ -136,6 +136,7 @@ const SetupModal = () => {
   const [experience, setExperience] = useState("Fresher");
   const [type, setType] = useState("Technical");
   const [showRoles, setShowRoles] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   if (!isConfigOpen) return null;
 
@@ -143,34 +144,71 @@ const SetupModal = () => {
     r.toLowerCase().includes(role.toLowerCase())
   );
 
+  // const handleStart = async () => {
+  //   const userId =
+  //     localStorage.getItem("userId") ||
+  //     Math.floor(100000 + Math.random() * 900000).toString();
+
+  //   localStorage.setItem("userId", userId);
+
+  //   const data = {
+  //     userId,
+  //     role,
+  //     experience,
+  //     type
+  //   }
+  //   console.log(data);
+
+  //   const res = await axios.post("http://localhost:8000/ai/start-interview", {
+  //     userId,
+  //     role,
+  //     experience,
+  //     type
+  //   });
+
+  //   localStorage.setItem("interviewId", res.data.interviewId);
+  //   localStorage.setItem("currentQuestion", res.data.question);
+  //   // console.log(res.data);
+  //   setIsConfigOpen(false);
+  //   navigate("/interview");
+  // };
   const handleStart = async () => {
-    const userId =
-      localStorage.getItem("userId") ||
-      Math.floor(100000 + Math.random() * 900000).toString();
+  setIsLoading(true);
 
-    localStorage.setItem("userId", userId);
+  const userId =
+    localStorage.getItem("userId") ||
+    Math.floor(100000 + Math.random() * 900000).toString();
 
-    const data = {
-      userId,
-      role,
-      experience,
-      type
-    }
-    console.log(data);
+  localStorage.setItem("userId", userId);
 
-    const res = await axios.post("http://localhost:8000/ai/start-interview", {
-      userId,
-      role,
-      experience,
-      type
-    });
+  const apiCall = axios.post("http://localhost:8000/ai/start-interview", {
+    userId,
+    role,
+    experience,
+    type
+  });
 
-    localStorage.setItem("interviewId", res.data.interviewId);
-    localStorage.setItem("currentQuestion", res.data.firstQuestion);
+  const minDelay = new Promise(resolve => setTimeout(resolve, 5000));
 
-    setIsConfigOpen(false);
-    navigate("/interview");
-  };
+  const [res] = await Promise.all([apiCall, minDelay]);
+
+  localStorage.setItem("interviewId", res.data.interviewId);
+  localStorage.setItem("currentQuestion", res.data.question);
+
+  setIsConfigOpen(false);
+  setIsLoading(false);
+  navigate("/interview");
+};
+
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black text-white">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mb-6"></div>
+        <p className="text-lg font-semibold">Preparing your AI interviewer...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -236,11 +274,10 @@ const SetupModal = () => {
 
 
                 onClick={() => setExperience(e)}
-                className={`flex-1 py-3 rounded-xl ${
-                  experience === e
-                    ? "border-purple-500 bg-purple-500/10 text-purple-500"
-                    : "border-gray-500/20 hover:bg-purple-500/5 dark:text-gray-300"
-                }`}
+                className={`flex-1 py-3 rounded-xl ${experience === e
+                  ? "border-purple-500 bg-purple-500/10 text-purple-500"
+                  : "border-gray-500/20 hover:bg-purple-500/5 dark:text-gray-300"
+                  }`}
               >
                 {e}
               </button>
