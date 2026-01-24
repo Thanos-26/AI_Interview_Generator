@@ -2,8 +2,8 @@ import express from "express"
 import "dotenv/config"
 import connectDB from "./db/connectDB.js";
 import aiRoutes from "./routes/aiRoutes.js";
-import authRoutes from "./routes/auth.js"
-
+import authRoutes from "./routes/auth.js";
+import cors from "cors";
 const app = express();
 const PORT = 8000;
 // const 
@@ -11,7 +11,7 @@ const PORT = 8000;
 await connectDB();
 
 app.use(express.json()); // VERY IMPORTANT
-
+app.use(cors())
 
 app.get(
     '/',

@@ -30,7 +30,7 @@ const Interview = () => {
       <div className="lg:col-span-1 flex flex-col gap-6">
         <div className="bg-white/5 dark:bg-black/20 border-l-4 border-purple-500 p-6 rounded-2xl backdrop-blur-md">
           <span className="text-[10px] font-bold text-purple-400 uppercase">Question 01</span>
-          <p className="mt-4 text-lg font-medium leading-relaxed">"Can you explain the difference between a load balancer and an API gateway?"</p>
+          <p className="mt-4 text-lg font-medium leading-relaxed">{localStorage.getItem('currentQuestion')}</p>
         </div>
       </div>
 

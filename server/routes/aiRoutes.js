@@ -100,7 +100,7 @@ Current answer:
 "${userAnswer}"
 
 Tasks:
-1. Evaluate the current answer (0-10)
+1. Evaluate the current answer (0-100)
 2. Give 1-sentence feedback
 3. Detect nervousness (true/false)
 4. Ask next question (adaptive)
@@ -117,8 +117,8 @@ Return ONLY valid JSON:
 
 
 router.post("/start-interview", async (req, res) => {
-
-    const userId = "100101";
+    console.log(req.body);
+    const userId = Math.random();
 
     const interview = await Interview.create({
         userId,
@@ -141,7 +141,7 @@ router.post("/start-interview", async (req, res) => {
         interviewId: interview._id,
         question: firstQuestion
     })
-})
+});
 
 router.get('/', (req, res) => res.send("AI"))
 // router.post("/next-question", async (req, res) => {
