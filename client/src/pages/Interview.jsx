@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HiMicrophone } from 'react-icons/hi';
 import { useInterview } from '../hooks/useInterview';
@@ -22,6 +22,32 @@ const Interview = () => {
 
   const isWaitingForQuestion = !currentQuestion;
 
+  /**
+   * AUTO FULLSCREEN — starts after setup ends
+   */
+  useEffect(() => {
+    if (!isSetupPhase && !isEnding) {
+      const enterFullscreen = async () => {
+        try {
+          const el = document.documentElement;
+          if (el.requestFullscreen) await el.requestFullscreen();
+        } catch (err) {
+          console.warn("Fullscreen blocked by browser", err);
+        }
+      };
+      enterFullscreen();
+    }
+
+    return () => {
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+    };
+  }, [isSetupPhase, isEnding]);
+
+  /**
+   * END SESSION
+   */
   const handleEndSession = async () => {
     setIsEnding(true);
 
@@ -32,15 +58,9 @@ const Interview = () => {
           interviewId
         });
       }
-    } catch (e) {
-      console.error(e);
+    } catch (err) {
+      console.error("Interview analysis failed", err);
     } finally {
-      // ✅ Exit fullscreen safely
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
-      }
-
-      localStorage.removeItem('interviewId');
       localStorage.removeItem('currentQuestion');
       setIsEnding(false);
       navigate('/dashboard');
@@ -48,21 +68,25 @@ const Interview = () => {
   };
 
   return (
-    <section className="h-screen p-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <section className="h-[calc(100vh-100px)] p-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
 
+      {/* QUESTION SIDEBAR */}
       <div className="lg:col-span-1">
         {!isSetupPhase && !isWaitingForQuestion && (
-          <div className="bg-white/5 border-l-4 border-purple-500 p-6 rounded-2xl">
+          <div className="bg-white/5 border-l-4 border-purple-500 p-6 rounded-2xl backdrop-blur-md">
             <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">
-              Current Question
+              {isAiProcessing ? "AI Analyzing..." : "Current Question"}
             </span>
-            <p className="mt-4 text-lg text-white">
+            <p className={`mt-4 text-lg text-white transition-opacity ${
+              isAiProcessing || isAiSpeaking ? 'opacity-40' : 'opacity-100'
+            }`}>
               {currentQuestion}
             </p>
           </div>
         )}
       </div>
 
+      {/* MAIN STAGE */}
       <div className="lg:col-span-3 rounded-[3rem] relative overflow-hidden bg-neutral-950 flex items-center justify-center border border-white/5 shadow-2xl">
 
         {/* VIDEO */}
@@ -74,7 +98,7 @@ const Interview = () => {
           className="w-full h-full object-cover scale-x-[-1]" 
         />
 
-        {/* LOADING */}
+        {/* WAITING FOR FIRST QUESTION */}
         {isWaitingForQuestion && (
           <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black text-white">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 mb-6"></div>
@@ -82,19 +106,25 @@ const Interview = () => {
           </div>
         )}
 
-        {/* COUNTDOWN */}
+        {/* SETUP COUNTDOWN */}
         {isSetupPhase && !isWaitingForQuestion && (
-          <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/90">
+          <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/90 backdrop-blur-xl">
             <h2 className="text-2xl text-gray-400 mb-2 uppercase tracking-widest">Get Ready</h2>
-            <div className="text-9xl font-black text-purple-500">{countdown}</div>
+            <div className="text-9xl font-black text-purple-500 animate-pulse">
+              {countdown}
+            </div>
           </div>
         )}
 
-        {/* TRANSCRIPT */}
+        {/* TRANSCRIPT / AI STATUS */}
         {!isSetupPhase && !isWaitingForQuestion && (
           <div className="absolute bottom-32 px-10 w-full text-center z-20">
             <div className="inline-block bg-black/60 px-6 py-3 rounded-2xl">
-              {isAiProcessing ? "AI Evaluating..." : transcript || "Listening..."}
+              {isAiProcessing
+                ? "AI Evaluating..."
+                : isAiSpeaking
+                  ? "AI Speaking..."
+                  : transcript || "Listening..."}
             </div>
           </div>
         )}
@@ -104,7 +134,7 @@ const Interview = () => {
           <button 
             disabled={isWaitingForQuestion || isSetupPhase || isAiProcessing || isAiSpeaking}
             onClick={() => setIsMicOn(!isMicOn)}
-            className={`w-16 h-16 rounded-full flex items-center justify-center ${
+            className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${
               isMicOn ? 'bg-purple-600' : 'bg-red-500'
             }`}
           >
@@ -113,13 +143,12 @@ const Interview = () => {
 
           <button 
             onClick={handleEndSession}
-            disabled={isWaitingForQuestion || isEnding || isSetupPhase}
+            disabled={isEnding || isSetupPhase}
             className="px-10 py-4 bg-white/10 rounded-full text-xs text-white"
           >
             {isEnding ? "Finalizing..." : "End Session"}
           </button>
         </div>
-
       </div>
     </section>
   );
