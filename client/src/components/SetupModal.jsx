@@ -1,73 +1,3 @@
-// import { useContext } from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import { AppContext } from '../context/AppContext';
-// import { IoClose } from 'react-icons/io5';
-
-// const SetupModal = () => {
-//   const { isConfigOpen, setIsConfigOpen } = useContext(AppContext);
-//   const navigate = useNavigate();
-
-//   if (!isConfigOpen) return null;
-
-//   const handleStart = () => {
-//     setIsConfigOpen(false);
-//     navigate('/interview');
-//   };
-
-//   return (
-//     <div className="fixed inset-0 z-120 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-//       <div className="bg-white dark:bg-neutral-900 w-full max-w-lg p-8 rounded-[2.5rem] border border-gray-500/10 shadow-2xl">
-//         <div className="flex justify-between items-center mb-6">
-//           <h2 className="text-2xl font-bold">Interview Setup</h2>
-//           <button onClick={() => setIsConfigOpen(false)} className="text-gray-500 hover:text-red-500 transition text-2xl">
-//             <IoClose />
-//           </button>
-//         </div>
-
-
-//         <div class="space-y-4">
-//           <div>
-//             <label class="text-[10px] uppercase font-bold text-gray-400 block mb-1">Target Role</label>
-//             <select
-//               class="w-full bg-gray-500/10 border border-gray-500/20 rounded-xl p-4 outline-none focus:border-purple-500">
-//               <option>Software Engineer</option>
-//               <option>Product Manager</option>
-//               <option>Data Analyst</option>
-//             </select>
-//           </div>
-
-//           <div>
-//             <label class="text-[10px] uppercase font-bold text-gray-400 block mb-1">Experience Level</label>
-//             <div class="flex gap-2">
-//               <button onclick="selectOption(this, 'exp')"
-//                 class="exp-btn flex-1 py-3 glass rounded-xl text-xs font-bold border-purple-500 bg-purple-500/10">Fresher</button>
-//               <button onclick="selectOption(this, 'exp')"
-//                 class="exp-btn flex-1 py-3 glass rounded-xl text-xs font-bold hover:bg-purple-500/5">Experienced
-//                 (2-5y)</button>
-//             </div>
-//           </div>
-
-//           <div>
-//             <label class="text-[10px] uppercase font-bold text-gray-400 block mb-1">Interview Type</label>
-//             <select
-//               class="w-full bg-gray-500/10 border border-gray-500/20 rounded-xl p-4 outline-none focus:border-purple-500">
-//               <option>Technical Deep Dive</option>
-//               <option>HR Round</option>
-//               {/* <option>Behavioral Round</option> */}
-//             </select>
-//           </div>
-
-//           <button onclick="startInterview()"
-//             class="w-full py-5 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl font-bold text-white shadow-lg mt-4">Launch
-//             Interview Engine</button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default SetupModal;
-
 import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
@@ -79,6 +9,7 @@ const ROLES = [
   "Frontend Developer",
   "Backend Developer",
   "Full Stack Developer",
+  "Web Developer",
   "Data Analyst",
   "Data Scientist",
   "Product Manager",
@@ -95,6 +26,7 @@ const SetupModal = () => {
   const [experience, setExperience] = useState("Fresher");
   const [type, setType] = useState("Technical");
   const [showRoles, setShowRoles] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   if (!isConfigOpen) return null;
 
@@ -103,24 +35,48 @@ const SetupModal = () => {
   );
 
   const handleStart = async () => {
-    const userId =
-      localStorage.getItem("userId") ||
-      Math.floor(100000 + Math.random() * 900000).toString();
+    setIsLoading(true);
 
+    // ✅ FULLSCREEN (user gesture → browser safe)
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      }
+    } catch (e) {
+      console.warn("Fullscreen blocked:", e);
+    }
+
+    const userId = Math.floor(100000 + Math.random() * 900000).toString();
     localStorage.setItem("userId", userId);
 
-    const res = await axios.post("http://localhost:8000/ai/start-interview", {
-      userId,
-      role,
-      experience,
-      type
-    });
+    try {
+      const res = await axios.post("http://localhost:8000/ai/start-interview", {
+        userId,
+        role,
+        experience,
+        type
+      });
 
-    localStorage.setItem("interviewId", res.data.interviewId);
+      localStorage.setItem("interviewId", res.data.interviewId);
+      localStorage.setItem("currentQuestion", res.data.question);
 
-    setIsConfigOpen(false);
-    navigate("/interview");
+      setIsConfigOpen(false);
+      navigate("/interview");
+    } catch (err) {
+      console.error("Start interview failed:", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black text-white">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 mb-6"></div>
+        <p className="text-lg font-semibold">Preparing your AI interviewer...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -133,7 +89,7 @@ const SetupModal = () => {
           </button>
         </div>
 
-        {/* ROLE SEARCH */}
+        {/* ROLE */}
         <div className="mb-4 relative">
           <label className="text-xs font-bold text-gray-400">Target Role</label>
           <input
@@ -144,7 +100,7 @@ const SetupModal = () => {
             }}
             onFocus={() => setShowRoles(true)}
             className="w-full p-4 rounded-xl bg-gray-100 dark:bg-neutral-800"
-            placeholder="Search role (e.g. software...)"
+            placeholder="Enter your role"
           />
 
           {showRoles && role && (
@@ -173,7 +129,7 @@ const SetupModal = () => {
               <button
                 key={e}
                 onClick={() => setExperience(e)}
-                className={`flex-1 py-3 rounded-xl glass ${
+                className={`flex-1 py-3 rounded-xl ${
                   experience === e
                     ? "bg-purple-600 text-white"
                     : "bg-gray-200 dark:bg-neutral-700"
@@ -185,7 +141,7 @@ const SetupModal = () => {
           </div>
         </div>
 
-        {/* INTERVIEW TYPE */}
+        {/* TYPE */}
         <div className="mb-6">
           <label className="text-xs font-bold text-gray-400">Interview Type</label>
           <select
@@ -201,7 +157,7 @@ const SetupModal = () => {
         <button
           onClick={handleStart}
           disabled={!role}
-          className="w-full py-4 bg-linear-to-r from-purple-600 to-blue-600 rounded-xl font-bold text-white"
+          className="w-full py-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl font-bold text-white"
         >
           Launch Interview
         </button>
