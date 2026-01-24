@@ -18,7 +18,7 @@ const Interview = () => {
     currentQuestion, 
     isAiProcessing,
     isAiSpeaking 
-  } = useInterview(10);
+  } = useInterview(5);
 
   /**
    * Automatic Fullscreen Logic

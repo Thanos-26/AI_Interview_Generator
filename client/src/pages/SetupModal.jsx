@@ -66,22 +66,22 @@ const SetupModal = () => {
   setIsLoading(true);
 
   const userId =
-    localStorage.getItem("userId") ||
+    // localStorage.getItem("userId") ||
     Math.floor(100000 + Math.random() * 900000).toString();
 
   localStorage.setItem("userId", userId);
 
-  const apiCall = axios.post("http://localhost:8000/ai/start-interview", {
+  const res = await axios.post("http://localhost:8000/ai/start-interview", {
     userId,
     role,
     experience,
     type
   });
 
-  const minDelay = new Promise(resolve => setTimeout(resolve, 5000));
+  //const minDelay = new Promise(resolve => setTimeout(resolve, 5000));
 
-  const [res] = await Promise.all([apiCall, minDelay]);
-
+  // const [res] = await Promise.all([apiCall, minDelay]);
+  console.log(res)
   localStorage.setItem("interviewId", res.data.interviewId);
   localStorage.setItem("currentQuestion", res.data.question);
 
