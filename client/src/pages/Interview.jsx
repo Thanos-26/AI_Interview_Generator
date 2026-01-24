@@ -25,26 +25,7 @@ const Interview = () => {
   /**
    * AUTO FULLSCREEN — starts after setup ends
    */
-  useEffect(() => {
-    if (!isSetupPhase && !isEnding) {
-      const enterFullscreen = async () => {
-        try {
-          const el = document.documentElement;
-          if (el.requestFullscreen) await el.requestFullscreen();
-        } catch (err) {
-          console.warn("Fullscreen blocked by browser", err);
-        }
-      };
-      enterFullscreen();
-    }
-
-    return () => {
-      if (document.fullscreenElement) {
-        document.exitFullscreen().catch(() => {});
-      }
-    };
-  }, [isSetupPhase, isEnding]);
-
+  
   /**
    * END SESSION
    */
