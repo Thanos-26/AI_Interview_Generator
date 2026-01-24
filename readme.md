@@ -1,4 +1,4 @@
-```md
+
 # 🎙️ AI Interview Generator  
 ### Real-Time, Voice-Driven AI Interview Simulation Platform
 
@@ -273,6 +273,3 @@ AI Interview Generator delivers:
 
 ---
 
-## 📜 License
-MIT License
-```
