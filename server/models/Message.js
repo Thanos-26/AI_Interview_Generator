@@ -21,7 +21,7 @@ const messageSchema = new mongoose.Schema({
   score: {
     type: Number,       // only for AI evaluation messages
     min: 0,
-    max: 10
+    max: 100
   },
 
   feedback: {
