@@ -23,7 +23,13 @@ export const useInterview = (initialCountdown = 5) => {
     const init = async () => {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       streamRef.current = stream;
-      if (videoRef.current) videoRef.current.srcObject = stream;
+      if (videoRef.current) {
+  videoRef.current.srcObject = stream;
+  videoRef.current.onloadedmetadata = () => {
+    videoRef.current.play().catch(() => {});
+  };
+}
+
     };
     init();
 
@@ -84,7 +90,7 @@ export const useInterview = (initialCountdown = 5) => {
 
       rec.onend = () => {
         micLockRef.current = false;
-        if (isMicOn && !isAiProcessing && !isAiSpeaking) startMic();
+        // if (isMicOn && !isAiProcessing && !isAiSpeaking) startMic();
       };
 
       recognitionRef.current = rec;
