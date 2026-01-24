@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { HiMicrophone } from 'react-icons/hi';
 import { useInterview } from '../hooks/useInterview';
 import axios from 'axios';
+import VideoStage from "../components/VideoStage";
+
 
 const Interview = () => {
   const navigate = useNavigate();
