@@ -3,6 +3,7 @@ import "dotenv/config"
 import connectDB from "./db/connectDB.js";
 import aiRoutes from "./routes/aiRoutes.js";
 import authRoutes from "./routes/auth.js";
+import emotionRoutes from "./routes/emotionRoutes.js";
 import cors from "cors";
 const app = express();
 const PORT = 8000;
@@ -20,7 +21,7 @@ app.get(
 
 app.use('/ai',aiRoutes );
 app.use("/api/auth", authRoutes);
-
+app.use("/emotion", emotionRoutes);
 
 
 app.listen(PORT, () => {

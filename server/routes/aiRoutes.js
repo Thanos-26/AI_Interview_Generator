@@ -143,50 +143,7 @@ router.post("/start-interview", async (req, res) => {
     })
 });
 
-router.get('/', (req, res) => res.send("AI"))
-// router.post("/next-question", async (req, res) => {
-//     const { interviewId, answer } = req.body
-
-//     const interview = await Interview.findById(interviewId)
-//     const history = await Message.find({ interviewId }).sort("createdAt")
-//     // console.log(history);
-//     const prompt = buildPrompt(interview, history, answer)
-
-//     const completion = await groq.chat.completions.create({
-//         model: "llama-3.3-70b-versatile",
-//         messages: [{ role: "user", content: prompt }]
-//     })
-
-//     const ai = JSON.parse(completion.choices[0].message.content)
-
-//     await Message.create({
-//         interviewId,
-//         role: "user",
-//         content: answer
-//     })
-
-//     await Message.create({
-//         interviewId,
-//         role: "ai",
-//         content: ai.nextQuestion,
-//         score: ai.score,
-//         feedback: ai.feedback,
-//         nervous: ai.nervous
-//     })
-
-//     if (ai.nervous) interview.confidenceLevel -= 0.1
-//     else interview.confidenceLevel += 0.05
-
-//     await interview.save()
-
-//     res.json({
-//         question: ai.nextQuestion,
-//         feedback: {
-//             score: ai.score,
-//             comment: ai.feedback
-//         }
-//     })
-// })
+router.get('/', (req, res) => res.send("AI"));
 
 router.post("/next-question", async (req, res) => {
   const { interviewId, answer } = req.body

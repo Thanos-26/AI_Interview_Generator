@@ -1,0 +1,29 @@
+{
+  "1": {
+    "tension": 11,
+    "focus": 30,
+    "engagement": 26,
+    "confidence": 18,
+    "fatigue": 16,
+    "dominant": [
+      { "name": "Interest", "score": 44 },
+      { "name": "Love", "score": 37 },
+      { "name": "Amusement", "score": 37 }
+    ],
+    "primary": "Interest"
+  },
+
+  "2": {
+    "tension": 11,
+    "focus": 30,
+    "engagement": 26,
+    "confidence": 18,
+    "fatigue": 16,
+    "dominant": [
+      { "name": "Interest", "score": 44 },
+      { "name": "Love", "score": 37 },
+      { "name": "Amusement", "score": 37 }
+    ],
+    "primary": "Interest"
+  }
+}
