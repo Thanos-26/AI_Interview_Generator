@@ -17,7 +17,24 @@ const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: true
+      required: false // Optional for OAuth users
+    },
+
+    // OAuth fields
+    provider: {
+      type: String,
+      enum: ['local', 'google', 'github'],
+      default: 'local'
+    },
+
+    providerId: {
+      type: String,
+      default: null
+    },
+
+    picture: {
+      type: String,
+      default: null
     }
   },
   {
