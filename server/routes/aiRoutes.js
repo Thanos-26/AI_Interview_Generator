@@ -111,44 +111,73 @@ Return ONLY valid JSON:
   "feedback": string,
   "nervous": boolean,
   "nextQuestion": string
-}
+} 
 `
 }
 
-
+let deadline;
 router.post("/start-interview", async (req, res) => {
-    console.log(req.body);
-    const userId = Math.random();
+  const { role, experience, type } = req.body;
 
-    const interview = await Interview.create({
-        userId,
-        role: req.body.role,
-        experience: req.body.experience,
-        type: req.body.type,
-        confidenceLevel: 0.5,
-        status: "active"
-    })
+  // ⏱ Set duration
+  const durationMs =
+    experience === "Fresher"
+      ? 1 * 60 * 1000        // 5 mins
+      : 15 * 60 * 1000;     // 15 mins
 
-    const firstQuestion = "Tell me about yourself."
+  const startedAt = new Date();
+  const deadlineAt = new Date(startedAt.getTime() + durationMs);
 
-    await Message.create({
-        interviewId: interview._id,
-        role: "ai",
-        content: firstQuestion
-    })
+  const interview = await Interview.create({
+    userId: Math.random(),
+    role,
+    experience,
+    type,
+    confidenceLevel: 0.5,
+    status: "active",
+    startedAt,
+    deadlineAt
+  });
 
-    res.json({
-        interviewId: interview._id,
-        question: firstQuestion
-    })
+  const firstQuestion = "Tell me about yourself.";
+
+  await Message.create({
+    interviewId: interview._id,
+    role: "ai",
+    content: firstQuestion
+  });
+
+  res.json({
+    interviewId: interview._id,
+    question: firstQuestion,
+    deadlineAt
+  });
 });
+
 
 router.get('/', (req, res) => res.send("AI"));
 
 router.post("/next-question", async (req, res) => {
-  const { interviewId, answer } = req.body
+  const { interviewId, answer } = req.body;
 
-  const interview = await Interview.findById(interviewId)
+  const interview = await Interview.findById(interviewId);
+  if (!interview) {
+    return res.status(404).json({ message: "Interview not found" });
+  }
+
+  // ⏱ DEADLINE CHECK
+  if (new Date() > interview.deadlineAt) {
+    interview.status = "ended";
+    await interview.save();
+
+    return res.status(403).json({
+      sessionEnded: true,
+      message: "Interview session has ended due to time limit."
+    });
+  }
+
+  // 🔽 existing logic continues here
+
   const history = await Message.find({ interviewId }).sort("createdAt")
 
   // Sliding window (last 6 messages)
@@ -335,6 +364,7 @@ Return ONLY valid JSON in this format:
     res.status(500).json({ message: "Failed to analyze interview", error: error.message })
   }
 })
+
 
 // Get interview analysis
 router.get("/interview/:interviewId", async (req, res) => {

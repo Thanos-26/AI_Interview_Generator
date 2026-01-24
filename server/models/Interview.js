@@ -72,6 +72,15 @@ const interviewSchema = new mongoose.Schema({
     summary: {
         type: String
     },
+    startedAt: {
+  type: Date,
+  default: Date.now
+},
+deadlineAt: {
+  type: Date,
+  required: true
+},
+
     strongTopics: [String],
     weakTopics: [String],
     suggestions: [String]

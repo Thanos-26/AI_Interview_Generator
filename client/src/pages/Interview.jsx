@@ -19,7 +19,9 @@ const Interview = () => {
     transcript, 
     currentQuestion, 
     isAiProcessing,
-    isAiSpeaking 
+    isAiSpeaking ,
+    isSessionEnded, 
+    sessionEndMessage
   } = useInterview(5);
 
   const isWaitingForQuestion = !currentQuestion;
