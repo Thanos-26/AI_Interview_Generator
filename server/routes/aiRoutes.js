@@ -209,7 +209,7 @@ router.post("/next-question", async (req, res) => {
   })
 
   const ai = JSON.parse(completion.choices[0].message.content)
-
+  console.log(ai);
   // Save user answer
   await Message.create({
     interviewId,
@@ -229,14 +229,14 @@ router.post("/next-question", async (req, res) => {
 
   // ---- LONG TERM MEMORY UPDATE ----
 
-  if (ai.score < 5) {
+  if (ai.score < 50) {
     interview.weaknesses = [...new Set([
       ...(interview.weaknesses || []),
       "Needs clearer explanations"
     ])]
   }
 
-  if (ai.score > 7) {
+  if (ai.score > 70) {
     interview.strengths = [...new Set([
       ...(interview.strengths || []),
       "Good conceptual understanding"
@@ -253,7 +253,7 @@ router.post("/next-question", async (req, res) => {
   else interview.confidenceLevel += 0.05
 
   await interview.save()
-
+  // console.log(ai.nextQuestion);
   res.json({
     question: ai.nextQuestion,
     feedback: {
