@@ -11,29 +11,101 @@ const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY
 })
 
-function buildPrompt(session, userAnswer) {
-    return `
+// function buildPrompt(interview, history, userAnswer) {
+//     return `
+// You are a professional technical interviewer.
+
+// Role: ${interview.role}
+// Experience: ${interview.experience}
+// Interview type: ${interview.type}
+
+// Previous Q&A:
+// ${history.map(h =>
+//         `Q: ${h.role === "ai" ? h.content : ""}\nA: ${h.role === "user" ? h.content : ""}\nScore: ${h.score || "N/A"}`
+//     ).join("\n")}
+
+// Current answer:
+// "${userAnswer}"
+
+// Tasks:
+// 1. Evaluate the current answer (0-10)
+// 2. Give 1-sentence feedback
+// 3. Detect nervousness (true/false)
+// 4. Ask next question (adaptive)
+
+// Return ONLY valid JSON in this format:
+// {
+//   "score": number,
+//   "feedback": string,
+//   "nervous": boolean,
+//   "nextQuestion": string
+// }
+// `
+// }
+
+
+// function buildPrompt(session, userAnswer) {
+//     return `
+// You are a professional technical interviewer.
+
+// Role: ${session.role}
+// Experience: ${session.experience}
+// Interview type: ${session.type}
+
+// Previous Q&A:
+// ${session.history.map(h =>
+//         `Q: ${h.question}\nA: ${h.answer}\nScore: ${h.score}`
+//     ).join("\n")}
+
+// Current answer:
+// "${userAnswer}"
+
+// Tasks:
+// 1. Evaluate answer (0-10)
+// 2. Give 1-sentence feedback
+// 3. Detect nervousness (true/false)
+// 4. Ask next question (adaptive)
+
+// Return JSON:
+// {
+//   "score": number,
+//   "feedback": string,
+//   "nervous": boolean,
+//   "nextQuestion": string
+// }
+// `
+// }
+
+function buildPrompt(interview, recentHistory, userAnswer) {
+  return `
 You are a professional technical interviewer.
 
-Role: ${session.role}
-Experience: ${session.experience}
-Interview type: ${session.type}
+Role: ${interview.role}
+Experience: ${interview.experience}
+Interview type: ${interview.type}
 
-Previous Q&A:
-${session.history.map(h =>
-        `Q: ${h.question}\nA: ${h.answer}\nScore: ${h.score}`
-    ).join("\n")}
+Candidate memory:
+Strengths: ${(interview.strengths || []).join(", ") || "none"}
+Weaknesses: ${(interview.weaknesses || []).join(", ") || "none"}
+Confidence trend: ${interview.confidenceTrend || "stable"}
+
+Recent Q&A:
+${recentHistory.map(h =>
+  `Q: ${h.role === "ai" ? h.content : ""}
+A: ${h.role === "user" ? h.content : ""}
+Score: ${h.score || "N/A"}`
+).join("\n")}
 
 Current answer:
 "${userAnswer}"
 
 Tasks:
-1. Evaluate answer (0-10)
+1. Evaluate the current answer (0-10)
 2. Give 1-sentence feedback
 3. Detect nervousness (true/false)
 4. Ask next question (adaptive)
 
-Return JSON:
+Return ONLY valid JSON:
 {
   "score": number,
   "feedback": string,
@@ -43,9 +115,13 @@ Return JSON:
 `
 }
 
+
 router.post("/start-interview", async (req, res) => {
+
+    const userId = "100101";
+
     const interview = await Interview.create({
-        userId: "guest",
+        userId,
         role: req.body.role,
         experience: req.body.experience,
         type: req.body.type,
@@ -68,48 +144,123 @@ router.post("/start-interview", async (req, res) => {
 })
 
 router.get('/', (req, res) => res.send("AI"))
+// router.post("/next-question", async (req, res) => {
+//     const { interviewId, answer } = req.body
+
+//     const interview = await Interview.findById(interviewId)
+//     const history = await Message.find({ interviewId }).sort("createdAt")
+//     // console.log(history);
+//     const prompt = buildPrompt(interview, history, answer)
+
+//     const completion = await groq.chat.completions.create({
+//         model: "llama-3.3-70b-versatile",
+//         messages: [{ role: "user", content: prompt }]
+//     })
+
+//     const ai = JSON.parse(completion.choices[0].message.content)
+
+//     await Message.create({
+//         interviewId,
+//         role: "user",
+//         content: answer
+//     })
+
+//     await Message.create({
+//         interviewId,
+//         role: "ai",
+//         content: ai.nextQuestion,
+//         score: ai.score,
+//         feedback: ai.feedback,
+//         nervous: ai.nervous
+//     })
+
+//     if (ai.nervous) interview.confidenceLevel -= 0.1
+//     else interview.confidenceLevel += 0.05
+
+//     await interview.save()
+
+//     res.json({
+//         question: ai.nextQuestion,
+//         feedback: {
+//             score: ai.score,
+//             comment: ai.feedback
+//         }
+//     })
+// })
+
 router.post("/next-question", async (req, res) => {
-    const { interviewId, answer } = req.body
+  const { interviewId, answer } = req.body
 
-    const interview = await Interview.findById(interviewId)
-    const history = await Message.find({ interviewId }).sort("createdAt")
+  const interview = await Interview.findById(interviewId)
+  const history = await Message.find({ interviewId }).sort("createdAt")
 
-    const prompt = buildPrompt(interview, history, answer)
+  // Sliding window (last 6 messages)
+  const recentHistory = history.slice(-6)
 
-    const completion = await groq.chat.completions.create({
-        model: "llama3-70b-8192",
-        messages: [{ role: "user", content: prompt }]
-    })
+  const prompt = buildPrompt(interview, recentHistory, answer)
 
-    const ai = JSON.parse(completion.choices[0].message.content)
+  const completion = await groq.chat.completions.create({
+    model: "llama-3.3-70b-versatile",
+    messages: [
+      { role: "system", content: "Reply ONLY in valid JSON." },
+      { role: "user", content: prompt }
+    ],
+    temperature: 0.7
+  })
 
-    await Message.create({
-        interviewId,
-        role: "user",
-        content: answer
-    })
+  const ai = JSON.parse(completion.choices[0].message.content)
 
-    await Message.create({
-        interviewId,
-        role: "ai",
-        content: ai.nextQuestion,
-        score: ai.score,
-        feedback: ai.feedback,
-        nervous: ai.nervous
-    })
+  // Save user answer
+  await Message.create({
+    interviewId,
+    role: "user",
+    content: answer
+  })
 
-    if (ai.nervous) interview.confidenceLevel -= 0.1
-    else interview.confidenceLevel += 0.05
+  // Save AI question + evaluation
+  await Message.create({
+    interviewId,
+    role: "ai",
+    content: ai.nextQuestion,
+    score: ai.score,
+    feedback: ai.feedback,
+    nervous: ai.nervous
+  })
 
-    await interview.save()
+  // ---- LONG TERM MEMORY UPDATE ----
 
-    res.json({
-        question: ai.nextQuestion,
-        feedback: {
-            score: ai.score,
-            comment: ai.feedback
-        }
-    })
+  if (ai.score < 5) {
+    interview.weaknesses = [...new Set([
+      ...(interview.weaknesses || []),
+      "Needs clearer explanations"
+    ])]
+  }
+
+  if (ai.score > 7) {
+    interview.strengths = [...new Set([
+      ...(interview.strengths || []),
+      "Good conceptual understanding"
+    ])]
+  }
+
+  interview.confidenceTrend =
+    ai.nervous ? "declining" :
+    interview.confidenceTrend === "declining" ? "stable" :
+    "improving"
+
+  // Confidence numeric
+  if (ai.nervous) interview.confidenceLevel -= 0.1
+  else interview.confidenceLevel += 0.05
+
+  await interview.save()
+
+  res.json({
+    question: ai.nextQuestion,
+    feedback: {
+      score: ai.score,
+      comment: ai.feedback
+    }
+  })
 })
 
 
