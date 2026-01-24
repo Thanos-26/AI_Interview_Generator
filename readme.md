@@ -1,3 +1,4 @@
+```md
 # 🎙️ AI Interview Generator  
 ### Real-Time, Voice-Driven AI Interview Simulation Platform
 
@@ -144,3 +145,134 @@ For every answer, the AI provides:
 
 ## 📁 Project Structure
 
+```
+
+AI_Interview_Generator/
+│
+├── client/                     # Frontend (React + Vite)
+│   ├── src/
+│   │   ├── assets/             # Images & branding
+│   │   ├── components/         # Reusable UI components
+│   │   ├── context/
+│   │   │   └── AppContext.jsx  # Global auth & theme state
+│   │   ├── hooks/
+│   │   │   └── useInterview.jsx
+│   │   │       # Core interview state logic (mic, cam, AI)
+│   │   ├── pages/              # Landing, Auth, Interview, Dashboard
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   └── index.html
+│
+├── server/                     # Backend (Node + Express)
+│   ├── db/
+│   │   └── connectDB.js        # MongoDB connection
+│   ├── middleware/
+│   │   └── authMiddleware.js   # JWT protection
+│   ├── models/
+│   │   ├── User.js
+│   │   ├── Interview.js        # Session metadata
+│   │   └── Message.js          # Chat & response history
+│   ├── routes/
+│   │   ├── auth.js             # Signup / Login / OAuth
+│   │   └── aiRoutes.js         # AI prompt & analysis logic
+│   ├── index.js                # Server entry point
+│   └── .env
+│
+└── README.md
+
+```
+
+---
+
+## 🔧 Environment Variables
+
+### Backend (`server/.env`)
+```
+
+PORT=8000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+GROQ_API_KEY=your_groq_api_key
+
+```
+
+### Frontend (`client/.env`)
+```
+
+VITE_API_URL=[http://localhost:8000](http://localhost:8000)
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+VITE_GITHUB_CLIENT_ID=your_github_client_id
+
+```
+
+⚠️ Restart dev servers after changing environment variables.
+
+---
+
+## 🛠️ Installation & Setup
+
+### Clone the Repository
+```
+
+git clone [https://github.com/your-username/AI-Interview-Generator.git](https://github.com/your-username/AI-Interview-Generator.git)
+cd AI_Interview_Generator
+
+```
+
+### Backend
+```
+
+cd server
+npm install
+node index.js
+
+```
+
+Runs on: `http://localhost:8000`
+
+### Frontend
+```
+
+cd client
+npm install
+npm run dev
+
+```
+
+Runs on: `http://localhost:5173`
+
+---
+
+## 🏆 Hackathon Value Proposition
+
+**Problem**  
+Interview preparation lacks realism, adaptability, and objective evaluation.
+
+**Solution**  
+AI Interview Generator delivers:
+- Live, voice-based AI interviews
+- Adaptive questioning
+- Immediate, actionable feedback
+- Scalable, automated interview practice
+
+**Why It Stands Out**
+- AI-native from the ground up
+- Real-time speech & video interaction
+- Context-aware interviewer persona
+- Clean, modern UX
+- Strong system design & architecture
+
+---
+
+## 🔮 Future Enhancements
+- Emotion & facial expression analysis
+- Resume-based interview personalization
+- Multi-language interview support
+- Recruiter / enterprise mode
+- Interview comparison & progress tracking
+
+---
+
+## 📜 License
+MIT License
+```
