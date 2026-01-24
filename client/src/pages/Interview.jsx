@@ -1,14 +1,37 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HiMicrophone } from 'react-icons/hi';
 import { useInterview } from '../hooks/useInterview';
+import axios from 'axios';
 
 const Interview = () => {
   const navigate = useNavigate();
+  const [isEnding, setIsEnding] = useState(false);
   const { 
     videoRef, countdown, isSetupPhase, isMicOn, 
     setIsMicOn, transcript, currentQuestion, isAiProcessing 
   } = useInterview(10);
+
+  const handleEndSession = async () => {
+    const interviewId = localStorage.getItem('interviewId');
+    if (!interviewId) {
+      navigate('/dashboard');
+      return;
+    }
+
+    setIsEnding(true);
+    try {
+      // Analyze the interview before ending
+      await axios.post("http://localhost:8000/ai/analyze-interview", {
+        interviewId
+      });
+    } catch (error) {
+      console.error("Failed to analyze interview:", error);
+    } finally {
+      setIsEnding(false);
+      navigate('/dashboard');
+    }
+  };
 
   return (
     <section className="h-[calc(100vh-100px)] p-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -68,10 +91,11 @@ const Interview = () => {
             <HiMicrophone className="text-2xl text-white" />
           </button>
           <button 
-            onClick={() => navigate('/dashboard')}
-            className="px-8 py-4 bg-white/10 backdrop-blur-md rounded-full text-[10px] font-bold text-red-400 hover:bg-red-500/20 border border-white/10 uppercase tracking-widest"
+            onClick={handleEndSession}
+            disabled={isEnding || isSetupPhase}
+            className="px-8 py-4 bg-white/10 backdrop-blur-md rounded-full text-[10px] font-bold text-red-400 hover:bg-red-500/20 border border-white/10 uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            End Session
+            {isEnding ? "Analyzing..." : "End Session"}
           </button>
         </div>
       </div>

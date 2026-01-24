@@ -61,7 +61,20 @@ const interviewSchema = new mongoose.Schema({
         type: String,
         enum: ["active", "ended"],
         default: "active"
-    }
+    },
+
+    // Analysis results (populated after interview ends)
+    averageScore: {
+        type: Number,
+        min: 0,
+        max: 100
+    },
+    summary: {
+        type: String
+    },
+    strongTopics: [String],
+    weakTopics: [String],
+    suggestions: [String]
 }, { timestamps: true })
 
 export default mongoose.model("Interview", interviewSchema)
