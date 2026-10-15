@@ -19,6 +19,10 @@ app.get(
     (req, res)=> res.send("Index.js")
 )
 
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok' });
+})
+
 app.use('/ai',aiRoutes );
 app.use("/api/auth", authRoutes);
 app.use("/emotion", emotionRoutes);

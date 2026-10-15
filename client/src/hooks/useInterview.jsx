@@ -324,6 +324,15 @@ export const useInterview = (initialCountdown = 5) => {
       localStorage.setItem("currentQuestion", res.data.question);
       setTranscript("");
     } catch (e) {
+      if (e.response?.data?.sessionEnded) {
+        setIsSessionEnded(true);
+        setSessionEndMessage(
+          e.response.data.message || "Interview session ended"
+        );
+        window.speechSynthesis.cancel();
+        stopMic();
+        return;
+      }
       console.error(e);
     } finally {
       setIsAiProcessing(false);

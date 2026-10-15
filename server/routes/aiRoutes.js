@@ -122,7 +122,7 @@ router.post("/start-interview", async (req, res) => {
   // ⏱ Set duration
   const durationMs =
     experience === "Fresher"
-      ? 1 * 60 * 1000        // 5 mins
+      ? 5 * 60 * 1000        // 5 mins
       : 15 * 60 * 1000;     // 15 mins
 
   const startedAt = new Date();
@@ -169,7 +169,7 @@ router.post("/next-question", async (req, res) => {
   if (new Date() > interview.deadlineAt) {
     interview.status = "ended";
     await interview.save();
-
+    console.log(`Interview ${interviewId} has ended due to time limit.`);
     return res.status(403).json({
       sessionEnded: true,
       message: "Interview session has ended due to time limit."
@@ -186,7 +186,7 @@ router.post("/next-question", async (req, res) => {
   const prompt = buildPrompt(interview, recentHistory, answer)
 
   const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: "openai/gpt-oss-120b",
     messages: [
       { role: "system", content: "Reply ONLY in valid JSON." },
       { role: "user", content: prompt }
@@ -328,7 +328,7 @@ Return ONLY valid JSON in this format:
 `
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b",
       messages: [
         { role: "system", content: "Reply ONLY in valid JSON. Do not include any markdown or code blocks." },
         { role: "user", content: analysisPrompt }

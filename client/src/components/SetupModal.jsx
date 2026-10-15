@@ -59,6 +59,7 @@ const SetupModal = () => {
 
       localStorage.setItem("interviewId", res.data.interviewId);
       localStorage.setItem("currentQuestion", res.data.question);
+      localStorage.setItem("interviewDeadline", res.data.deadlineAt);
 
       setIsConfigOpen(false);
       navigate("/interview");
