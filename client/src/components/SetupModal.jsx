@@ -51,10 +51,13 @@ const SetupModal = () => {
 
     try {
       const res = await axios.post("http://localhost:8000/ai/start-interview", {
-        userId,
         role,
         experience,
         type
+      }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
       });
 
       localStorage.setItem("interviewId", res.data.interviewId);
@@ -72,27 +75,27 @@ const SetupModal = () => {
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black text-white">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 mb-6"></div>
-        <p className="text-lg font-semibold">Preparing your AI interviewer...</p>
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-dark-bg text-[#E6E1D8]">
+        <div className="h-px w-28 bg-white/20"><div className="h-px w-1/2 bg-[#C6D0E8]" /></div>
+        <p className="mt-5 text-sm">Preparing your interview</p>
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-      <div className="bg-white dark:bg-neutral-900 w-full max-w-lg p-8 rounded-[2.5rem] shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+      <div className="w-full max-w-lg border border-rule bg-white p-7 shadow-sm dark:border-white/15 dark:bg-[#16191F]">
 
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Interview Setup</h2>
-          <button onClick={() => setIsConfigOpen(false)} className="text-2xl">
+          <h2 className="font-serif text-3xl font-medium">Interview Setup</h2>
+          <button onClick={() => setIsConfigOpen(false)} className="border border-rule p-1 text-lg dark:border-white/15">
             <IoClose />
           </button>
         </div>
 
         {/* ROLE */}
         <div className="mb-4 relative">
-          <label className="text-xs font-bold text-gray-400">Target Role</label>
+          <label className="text-sm text-muted">Target role</label>
           <input
             value={role}
             onChange={e => {
@@ -100,12 +103,12 @@ const SetupModal = () => {
               setShowRoles(true);
             }}
             onFocus={() => setShowRoles(true)}
-            className="w-full p-4 rounded-xl bg-gray-100 dark:bg-neutral-800"
+            className="mt-1.5 w-full border border-rule bg-transparent p-3 text-sm outline-none focus:border-accent dark:border-white/15"
             placeholder="Enter your role"
           />
 
           {showRoles && role && (
-            <div className="absolute z-10 w-full bg-white dark:bg-neutral-800 mt-1 rounded-xl shadow-lg max-h-40 overflow-y-auto">
+            <div className="absolute z-10 mt-1 max-h-40 w-full overflow-y-auto border border-rule bg-white dark:border-white/15 dark:bg-[#16191F]">
               {filteredRoles.map(r => (
                 <div
                   key={r}
@@ -113,7 +116,7 @@ const SetupModal = () => {
                     setRole(r);
                     setShowRoles(false);
                   }}
-                  className="p-3 hover:bg-purple-500/10 cursor-pointer"
+                  className="cursor-pointer p-3 text-sm hover:bg-[#F3F1EB] dark:hover:bg-white/5"
                 >
                   {r}
                 </div>
@@ -124,16 +127,16 @@ const SetupModal = () => {
 
         {/* EXPERIENCE */}
         <div className="mb-4">
-          <label className="text-xs font-bold text-gray-400">Experience</label>
-          <div className="flex gap-2 mt-2">
+          <label className="text-sm text-muted">Experience</label>
+          <div className="mt-1.5 flex border border-rule dark:border-white/15">
             {["Fresher", "Experienced"].map(e => (
               <button
                 key={e}
                 onClick={() => setExperience(e)}
-                className={`flex-1 py-3 rounded-xl ${
+                className={`flex-1 py-3 text-sm transition-colors ${
                   experience === e
-                    ? "bg-purple-600 text-white"
-                    : "bg-gray-200 dark:bg-neutral-700"
+                    ? "bg-accent text-white"
+                    : "bg-transparent hover:bg-[#F3F1EB] dark:hover:bg-white/5"
                 }`}
               >
                 {e}
@@ -144,11 +147,11 @@ const SetupModal = () => {
 
         {/* TYPE */}
         <div className="mb-6">
-          <label className="text-xs font-bold text-gray-400">Interview Type</label>
+          <label className="text-sm text-muted">Interview type</label>
           <select
             value={type}
             onChange={e => setType(e.target.value)}
-            className="w-full p-4 rounded-xl bg-gray-100 dark:bg-neutral-800 mt-2"
+            className="mt-1.5 w-full border border-rule bg-transparent p-3 text-sm outline-none focus:border-accent dark:border-white/15"
           >
             <option>Technical</option>
             <option>HR</option>
@@ -158,7 +161,7 @@ const SetupModal = () => {
         <button
           onClick={handleStart}
           disabled={!role}
-          className="w-full py-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl font-bold text-white"
+          className="w-full bg-accent py-3 text-sm font-medium text-white transition-colors hover:bg-[#283958] disabled:opacity-50"
         >
           Launch Interview
         </button>

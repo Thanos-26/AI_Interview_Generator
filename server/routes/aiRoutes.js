@@ -2,6 +2,7 @@ import Groq from "groq-sdk"
 import express from "express"
 import mongoose from "mongoose";
 import Interview from "../models/Interview.js"
+import jwt from "jsonwebtoken"
 import Message from "../models/Message.js";
 
 
@@ -116,7 +117,19 @@ Return ONLY valid JSON:
 }
 
 let deadline;
-router.post("/start-interview", async (req, res) => {
+const requireAuth = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) return res.status(401).json({ message: "Authentication is required" });
+
+  try {
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch {
+    return res.status(401).json({ message: "Invalid or expired session" });
+  }
+};
+
+router.post("/start-interview", requireAuth, async (req, res) => {
   const { role, experience, type } = req.body;
 
   // ⏱ Set duration
@@ -129,7 +142,7 @@ router.post("/start-interview", async (req, res) => {
   const deadlineAt = new Date(startedAt.getTime() + durationMs);
 
   const interview = await Interview.create({
-    userId: Math.random(),
+    userId: req.user.id,
     role,
     experience,
     type,
@@ -156,6 +169,32 @@ router.post("/start-interview", async (req, res) => {
 
 
 router.get('/', (req, res) => res.send("AI"));
+
+router.get("/interviews", requireAuth, async (req, res) => {
+  try {
+    const interviews = await Interview.find({ userId: req.user.id })
+      .sort({ createdAt: -1 })
+      .select("role experience type averageScore status summary createdAt deadlineAt strongTopics weakTopics suggestions");
+
+    res.json({ interviews: interviews.map((interview) => ({
+      id: interview._id,
+      role: interview.role,
+      experience: interview.experience,
+      type: interview.type,
+      averageScore: interview.averageScore,
+      status: interview.status,
+      summary: interview.summary,
+      createdAt: interview.createdAt,
+      deadlineAt: interview.deadlineAt,
+      strongTopics: interview.strongTopics || [],
+      weakTopics: interview.weakTopics || [],
+      suggestions: interview.suggestions || []
+    })) });
+  } catch (error) {
+    console.error("Get interview history error:", error);
+    res.status(500).json({ message: "Failed to load interview history" });
+  }
+});
 
 router.post("/next-question", async (req, res) => {
   const { interviewId, answer } = req.body;

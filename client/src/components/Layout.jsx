@@ -9,8 +9,8 @@ const Layout = ({ children }) => {
       </main>
 
       {/* Optional Footer */}
-      <footer className="w-full py-8 text-center text-gray-500 text-xs border-t border-white/5">
-        &copy; 2026 INTERVIEW.AI - Build with Career Logic.
+      <footer className="w-full border-t border-rule py-6 text-center text-xs text-muted dark:border-white/10">
+        &copy; 2026 Interview Sim
       </footer>
     </div>
   );

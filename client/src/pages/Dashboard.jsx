@@ -3,27 +3,26 @@ import axios from 'axios';
 
 const Dashboard = () => {
   const [interview, setInterview] = useState(null);
+  const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchLatestInterview = async () => {
+    const fetchInterviewHistory = async () => {
       try {
-        const interviewId = localStorage.getItem('interviewId');
-        if (interviewId) {
-          const res = await axios.get(`http://localhost:8000/ai/interview/${interviewId}`);
-          setInterview(res.data.interview);
-          
-          // Clear interviewId from localStorage after successful fetch
-          localStorage.removeItem('interviewId');
-        }
+        const res = await axios.get('http://localhost:8000/ai/interviews', {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        const completedInterviews = res.data.interviews.filter((item) => item.status === 'ended');
+        setInterviews(completedInterviews);
+        setInterview(completedInterviews[0] || null);
       } catch (error) {
-        console.error("Failed to fetch interview:", error);
+        console.error("Failed to fetch interview history:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchLatestInterview();
+    fetchInterviewHistory();
   }, []);
 
   if (loading) {
@@ -31,7 +30,7 @@ const Dashboard = () => {
       <section className="max-w-7xl mx-auto p-8 flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-          <p className="text-slate-600 dark:text-gray-400">Loading interview analysis...</p>
+          <p className="text-sm text-muted">Loading interview analysis...</p>
         </div>
       </section>
     );
@@ -41,8 +40,8 @@ const Dashboard = () => {
     return (
       <section className="max-w-7xl mx-auto p-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <div className="text-center py-20">
-          <h2 className="text-4xl font-bold tracking-tight mb-4">No Interview Data</h2>
-          <p className="text-slate-600 dark:text-gray-400">Complete an interview to see your analysis here.</p>
+          <h2 className="mb-4 font-serif text-4xl">No Interview Data</h2>
+          <p className="text-muted">Complete an interview to see your analysis here.</p>
         </div>
       </section>
     );
@@ -59,22 +58,43 @@ const Dashboard = () => {
 
   return (
     <section className="max-w-7xl mx-auto p-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex justify-between items-end">
+      {interviews.length > 1 && (
+        <div className="border-y border-rule py-5 dark:border-white/10">
+          <p className="mb-3 text-[10px] uppercase tracking-[.14em] text-muted">Previous interviews</p>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {interviews.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setInterview(item)}
+                className={`shrink-0 border px-4 py-3 text-left text-sm transition-colors ${
+                  item.id === interview.id
+                    ? 'border-accent bg-accent text-white'
+                    : 'border-rule hover:bg-[#F3F1EB] dark:border-white/15 dark:hover:bg-white/5'
+                }`}
+              >
+                <span className="block font-medium">{item.role}</span>
+                <span className="mt-1 block text-xs opacity-70">{new Date(item.createdAt).toLocaleDateString()}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      <div className="flex items-end justify-between border-b border-rule pb-8 dark:border-white/10">
         <div>
-          <h2 className="text-4xl font-bold tracking-tight">Interview Analysis</h2>
-          <p className="text-slate-600 dark:text-gray-400">{interview.role} | {interview.type} | {formattedDate}</p>
+          <h2 className="font-serif text-5xl">Interview Assessment</h2>
+          <p className="mt-2 text-sm text-muted">{interview.role} / {interview.type} / {formattedDate}</p>
         </div>
         <div className="text-right">
-          <div className="text-5xl font-bold text-purple-500">{score}</div>
-          <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Overall Score / 100</p>
+          <div className="font-serif text-6xl">{score}<span className="ml-2 text-xl text-muted">/ 100</span></div>
+          <p className="text-[10px] uppercase tracking-[.14em] text-muted">Overall score</p>
         </div>
       </div>
 
       {/* Summary Section */}
       {interview.summary && (
-        <div className="p-8 rounded-[2rem] bg-white/70 dark:bg-white/5 border border-slate-200 dark:border-white/10 backdrop-blur-md">
+        <div className="border-b border-rule py-8 dark:border-white/10">
           <h3 className="text-xs font-bold text-gray-500 uppercase mb-4">Interview Summary</h3>
-          <p className="text-slate-700 dark:text-gray-300 leading-relaxed">{interview.summary}</p>
+          <p className="max-w-3xl leading-8 text-muted">{interview.summary}</p>
         </div>
       )}
 

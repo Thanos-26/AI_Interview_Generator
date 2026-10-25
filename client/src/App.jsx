@@ -13,13 +13,8 @@ function AppLayout({ children }) {
   const isAuthPage = location.pathname === '/';
   
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0a0a0c] text-slate-800 dark:text-slate-200 transition-colors duration-300">
+    <div className="min-h-screen bg-paper text-ink transition-colors duration-200 dark:bg-dark-bg dark:text-[#E6E1D8]">
       {/* Animated Background Mesh - hidden on auth page */}
-      {!isAuthPage && (
-        <div className="fixed inset-0 z-[-1] opacity-40 dark:opacity-100">
-           <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_10%,_rgba(168,85,247,0.15),transparent_40%)] dark:bg-[radial-gradient(circle_at_10%_10%,_rgba(88,28,135,0.15),transparent_40%)]" />
-        </div>
-      )}
       
       {!isAuthPage && <Navbar />}
       {children}

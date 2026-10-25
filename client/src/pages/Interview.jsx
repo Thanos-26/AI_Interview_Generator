@@ -174,11 +174,11 @@ const Interview = () => {
       {/* QUESTION SIDEBAR */}
       <div className="lg:col-span-1">
         {!isSetupPhase && !isWaitingForQuestion && (
-          <div className="bg-white/80 dark:bg-white/5 border-l-4 border-purple-500 p-6 rounded-2xl backdrop-blur-md">
-            <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">
-              {isAiProcessing ? "AI Analyzing..." : "Current Question"}
+          <div className="border-l border-accent bg-white p-6 dark:bg-white/5">
+            <span className="text-[10px] uppercase tracking-[.14em] text-muted">
+              {isAiProcessing ? "AI Analyzing..." : "Question"}
             </span>
-            <p className={`mt-4 text-lg text-slate-900 dark:text-white transition-opacity ${
+            <p className={`mt-4 font-serif text-xl text-ink transition-opacity dark:text-[#E6E1D8] ${
               isAiProcessing || isAiSpeaking ? 'opacity-40' : 'opacity-100'
             }`}>
               {currentQuestion}
@@ -188,7 +188,7 @@ const Interview = () => {
       </div>
 
       {/* MAIN STAGE */}
-      <div className="lg:col-span-3 rounded-[3rem] relative overflow-hidden bg-neutral-950 flex items-center justify-center border border-white/5 shadow-2xl">
+      <div className="relative flex items-center justify-center overflow-hidden border border-white/15 bg-dark-bg lg:col-span-3">
 
         {/* VIDEO */}
         <video 
@@ -201,7 +201,7 @@ const Interview = () => {
 
         {/* NETWORK SPEED */}
         <div
-          className={`absolute top-6 right-6 z-30 flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold backdrop-blur-md ${
+          className={`absolute right-4 top-4 z-30 flex items-center gap-2 border border-white/20 px-3 py-1.5 text-xs ${
             networkStatus.isOnline
               ? 'bg-black/60 text-emerald-300'
               : 'bg-red-950/80 text-red-300'
@@ -219,7 +219,7 @@ const Interview = () => {
         {/* SESSION TIMER */}
         {!isSetupPhase && (
           <div
-            className="absolute top-6 left-6 z-30 flex items-center gap-2 rounded-full bg-black/60 px-4 py-2 text-xs font-semibold text-white backdrop-blur-md"
+            className="absolute left-4 top-4 z-30 flex items-center gap-2 border border-white/20 bg-black/60 px-3 py-1.5 text-xs text-white"
             role="timer"
             aria-label={`Interview elapsed time: ${formattedElapsedTime}`}
           >
@@ -231,7 +231,7 @@ const Interview = () => {
         {/* WAITING FOR FIRST QUESTION */}
         {isWaitingForQuestion && (
           <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black text-white">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 mb-6"></div>
+            <div className="mb-6 h-px w-20 bg-white/30"><div className="h-px w-1/2 bg-white" /></div>
             <p className="text-lg font-semibold">AI is preparing your first question...</p>
           </div>
         )}
@@ -240,7 +240,7 @@ const Interview = () => {
         {isSetupPhase && !isWaitingForQuestion && (
           <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/90 backdrop-blur-xl">
             <h2 className="text-2xl text-gray-400 mb-2 uppercase tracking-widest">Get Ready</h2>
-            <div className="text-9xl font-black text-purple-500 animate-pulse">
+            <div className="font-serif text-9xl font-light text-white">
               {countdown}
             </div>
           </div>
@@ -249,7 +249,7 @@ const Interview = () => {
         {/* TRANSCRIPT / AI STATUS */}
         {!isSetupPhase && !isWaitingForQuestion && (
           <div className="absolute bottom-32 px-10 w-full text-center z-20">
-            <div className="inline-block bg-white/85 text-slate-900 dark:bg-black/60 dark:text-white px-6 py-3 rounded-2xl">
+            <div className="inline-block border border-white/20 bg-black/70 px-5 py-2 text-sm text-white">
               {isAiProcessing
                 ? "AI Evaluating..."
                 : isAiSpeaking
@@ -260,21 +260,21 @@ const Interview = () => {
         )}
 
         {/* CONTROLS */}
-        <div className="absolute bottom-8 flex items-center gap-6 z-30">
+        <div className="absolute bottom-8 z-30 flex items-center gap-4">
           <button 
             disabled={isWaitingForQuestion || isSetupPhase || isAiProcessing || isAiSpeaking}
             onClick={() => setIsMicOn(!isMicOn)}
-            className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${
-              isMicOn ? 'bg-purple-600' : 'bg-red-500'
+            className={`flex h-11 items-center gap-2 rounded-full px-4 text-sm transition-colors ${
+              isMicOn ? 'bg-white text-ink' : 'bg-[#6B1E2E] text-white'
             }`}
           >
-            <HiMicrophone className="text-2xl text-white" />
+            <HiMicrophone className="text-lg" /><span>{isMicOn ? 'Mic on' : 'Mic off'}</span>
           </button>
 
           <button 
             onClick={handleEndSession}
             disabled={isEnding || isSetupPhase}
-            className="px-10 py-4 bg-white/80 text-slate-900 dark:bg-white/10 dark:text-white rounded-full text-xs"
+            className="border border-white/40 px-5 py-3 text-xs text-white transition-colors hover:bg-white/10"
           >
             {isEnding ? "Finalizing..." : "End Session"}
           </button>
