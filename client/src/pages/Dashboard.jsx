@@ -179,13 +179,13 @@ const Dashboard = () => {
 
       {/* Suggestions Section */}
       {interview.suggestions && interview.suggestions.length > 0 && (
-        <div className="p-8 rounded-[2rem] bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-purple-500/20 backdrop-blur-md">
-          <h3 className="text-xs font-bold text-purple-400 uppercase mb-4">How to Improve</h3>
+        <div className="p-8 rounded-[2rem] border border-purple-500/20 backdrop-blur-md">
+          <h3 className="text-xs font-bold  uppercase mb-4">How to Improve</h3>
           <ul className="space-y-4">
             {interview.suggestions.map((suggestion, idx) => (
               <li key={idx} className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-purple-400 text-xs font-bold">{idx + 1}</span>
+                <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-400 text-xs font-bold">{idx + 1}</span>
                 </div>
                 <p className="text-slate-700 dark:text-gray-300 leading-relaxed">{suggestion}</p>
               </li>
