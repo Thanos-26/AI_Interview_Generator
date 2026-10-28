@@ -153,8 +153,12 @@ const SetupModal = () => {
             onChange={e => setType(e.target.value)}
             className="mt-1.5 w-full border border-rule bg-transparent p-3 text-sm outline-none focus:border-accent dark:border-white/15"
           >
-            <option>Technical</option>
-            <option>HR</option>
+            <option value="Technical" className="bg-white text-black dark:bg-gray-900 dark:text-white">
+      Technical
+    </option>
+    <option value="HR" className="bg-white text-black dark:bg-gray-900 dark:text-white">
+      HR
+    </option>
           </select>
         </div>
 

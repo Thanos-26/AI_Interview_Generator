@@ -120,7 +120,11 @@ const AuthPage = () => {
             <button disabled={authLoading} className="flex w-full items-center justify-center gap-2 bg-accent py-3 text-sm font-medium text-white transition-colors hover:bg-[#283958] disabled:cursor-not-allowed disabled:opacity-60">{authLoading ? 'Please wait…' : isLogin ? 'Sign in to Interview Sim' : 'Create my account'} <HiArrowRight className="text-lg" /></button>
           </form>
           <div className="my-6 flex items-center gap-3 text-xs text-slate-400 before:h-px before:flex-1 before:bg-slate-200 after:h-px after:flex-1 after:bg-slate-200 dark:before:bg-white/10 dark:after:bg-white/10">OR CONTINUE WITH</div>
-          <div className="grid grid-cols-2 gap-3"><button type="button" onClick={handleGoogleLogin} disabled={authLoading} className="rounded-xl border border-slate-200 py-3 text-sm font-semibold transition hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/5">Google</button><button type="button" onClick={handleGitHubLogin} disabled={authLoading} className="rounded-xl border border-slate-200 py-3 text-sm font-semibold transition hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/5">GitHub</button></div>
+
+          <div className="grid grid-cols gap-3">
+            <button type="button" onClick={handleGoogleLogin} disabled={authLoading} className="rounded-xl border border-slate-200 py-3 text-sm font-semibold transition hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/5">Google</button>
+            {/* <button type="button" onClick={handleGitHubLogin} disabled={authLoading} className="rounded-xl border border-slate-200 py-3 text-sm font-semibold transition hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/5">GitHub</button> */}
+            </div>
           {(!GOOGLE_CLIENT_ID || !GITHUB_CLIENT_ID) && <p className="mt-4 text-center text-xs text-amber-600 dark:text-amber-300">Social sign-in requires its provider key in <code>.env</code>.</p>}
         </section>
       </div>
